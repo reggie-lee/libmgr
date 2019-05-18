@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Book List - The Library</title>
+</head>
+
+<body>
+    <div class="jumbotron text-center">
+        <h1>Book List</h1>
+    </div>
+
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ISBN</th>
+                        <th>Name</th>
+                        <th>Total</th>
+                        <th>Available</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                    <tr>
+                        {% for row in blist %}
+                        {% for item in row %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+
+</html>

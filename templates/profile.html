@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block header %}
+<h1>{{ name }}@{{ id }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="form-group">
+    <label for="password">My Password</label>
+    <input class="form-control" type="text" id="password" placeholder="{{ password }}" readonly>
+</div>
+{% endblock %}

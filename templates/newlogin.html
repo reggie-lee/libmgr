@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In{% endblock %}
+
+{% block header %}
+<h1>Log In</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/login" method="post" role="form" class="form-horizontal">
+    <div class="form-group">
+        <label for="userid">User ID</label>
+        <input type="text" class="form-control" id="userid" name="userid" placeholder="Enter user ID">
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+    </div>
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="RemPass">
+        <label class="form-check-label" for="RemPass">Remember my password</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Log In</button>
+</form>
+{% endblock %}
