@@ -27,14 +27,41 @@ def profile(userid):
         "SELECT * FROM users WHERE id=?", [userid]
     ).fetchone()
     if user:
-        return render_template('profile.html', id=user['id'], name=user['username'], password=user['password'])
+        readonly = True
+        if user['id'] == g.user['id']:
+            readonly = False
+        return render_template('profile.html', user=user, readonly=readonly)
     else:
         abort(500)
 
 
-@bp.route('/user')
+@bp.route('/user', methods=('GET', 'POST'))
+@login_required
 def my_profile():
+    if request.method == 'POST':
+        userid = request.form['userid']
+        username = request.form['username']
+        db = get_db()
+        error = None
+
+        if not userid:
+            error = 'User ID cannot be empty'
+        elif userid != g.user['id'] and db.execute('SELECT EXISTS(SELECT 1 FROM users WHERE id=?)', [userid]).fetchone()[0]:
+            error = 'User @{} already registered.'.format(userid)
+
+        if error is None:
+            db.execute(
+                'UPDATE users SET (id, username) = (?, ?) WHERE id = ?',
+                (userid, username, g.user['id'])
+            )
+            db.commit()
+            flash('User information updated.')
+            return redirect('@' + userid)
+
+        flash(error)
+
     return redirect('@' + g.user['id'])
+
 
 @bp.route('/explore')
 def explore():

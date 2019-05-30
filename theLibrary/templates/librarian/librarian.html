@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Librarian{% endblock %}
+
+{% block header %}
+<h1>Librarian</h1>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Admin</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+            {% for user in userlist %}
+            <tr {% if user['permission'] == -1 %} class="table-dark text-dark" {% endif %}>
+                <td>{{ user['id'] }}</td>
+                <td>{{ user['username'] }}</td>
+                <td>
+                    {% if user['permission'] == 1 %}
+                    <i class="fas fa-circle"></i>
+                    {% else %}
+                    <i class="far fa-circle"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/librarian/edit/user@{{ user['id'] }}"><i class="fas fa-edit"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

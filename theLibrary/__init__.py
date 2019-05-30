@@ -24,9 +24,10 @@ def create_app(test_config=None):
     from theLibrary import db
     db.init_app(app)
 
-    from theLibrary import auth, library
+    from theLibrary import auth, library, librarian
     app.register_blueprint(auth.bp)
     app.register_blueprint(library.bp)
+    app.register_blueprint(librarian.bp)
 
     app.add_url_rule('/', endpoint='index')
 

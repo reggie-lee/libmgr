@@ -21,6 +21,17 @@ def login_required(view):
     return wrapped_view
 
 
+def permission_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user['permission'] == 0:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+
 @bp.before_app_request
 def loggedin():
     userid = session.get('userid')

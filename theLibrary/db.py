@@ -41,7 +41,10 @@ def init_db_command():
         str.encode(input('Enter root password: ')),
         bcrypt.gensalt()
     )
-    db.execute("INSERT INTO users VALUES ('root', ?, ?)", (password, username))
+    db.execute(
+        "INSERT INTO users VALUES ('root', ?, ?, 1)",
+        (password, username)
+    )
     db.commit()
 
     click.echo('Initialized the database.')
