@@ -63,6 +63,39 @@ def my_profile():
     return redirect('@' + g.user['id'])
 
 
+@bp.route('/bookshelf')
+@login_required
+def bookshelf():
+    db = get_db()
+    booklist = db.execute(
+        'SELECT books.id, books.isbn, books.title, account.due FROM account JOIN books ON user_id = ? AND (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id',
+        (g.user['id'],)
+    ).fetchall()
+    return render_template('user/bookshelf.html', booklist=booklist)
+
+
 @bp.route('/explore')
 def explore():
-    return render_template('explore.html', booklist=get_db().execute('SELECT isbn, title, total, borrowed FROM books').fetchall())
+    return render_template(
+        'explore.html',
+        booklist=get_db().execute(
+            'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books'
+        ).fetchall()
+    )
+
+
+@bp.route('/borrow/<int:bookid>')
+def borrow(bookid):
+    db = get_db()
+    book = db.execute(
+        'SELECT id, title FROM books WHERE id = ?', (bookid,)).fetchone()
+    subbooks = db.execute(
+        'SELECT id, location, (SELECT user_id FROM account WHERE sub_id = subbooks.id) AS borrower FROM subbooks WHERE book_id = ?',
+        (bookid,)
+    )
+    return render_template('user/borrow.html', book=book, subbooks=subbooks)
+
+
+@bp.route('/borrow/<int:bookid>/<int:subid>')
+def sub_borrow(bookid, subid):
+    return "TODO"

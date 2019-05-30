@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS books;
-DROP TABLE IF EXISTS entries;
+DROP TABLE IF EXISTS subbooks;
+DROP TABLE IF EXISTS account;
+DROP TABLE IF EXISTS log;
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   password TEXT NOT NULL,
@@ -18,20 +20,26 @@ CREATE TABLE books (
   summary TEXT DEFAULT NULL,
   othertitles DEFAULT NULL,
   subject TEXT DEFAULT NULL,
-  author TEXT DEFAULT NULL,
-  total INTEGER CHECK (total >= 0),
-  borrowed INTEGER CHECK (
-    borrowed >= 0
-    AND borrowed <= total
-  ) DEFAULT 0
+  author TEXT DEFAULT NULL
 );
-CREATE TABLE entries (
+CREATE TABLE subbooks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  type TEXT CHECK(type IN ('B', 'R', 'N', 'D')),
   book_id INTEGER NOT NULL,
+  location TEXT DEFAULT NULL,
+  FOREIGN KEY (book_id) REFERENCES books(id)
+);
+CREATE TABLE account (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sub_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  due TIMESTAMP NOT NULL DEFAULT (DATETIME('now', '+1 month', 'localtime')),
+  FOREIGN KEY (sub_id) REFERENCES subbooks(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE TABLE log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TIMESTAMP NOT NULL DEFAULT (DATETIME('now', 'localtime')),
   user_id TEXT NOT NULL,
   detail TEXT DEFAULT NULL,
-  FOREIGN KEY (book_id) REFERENCES books(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

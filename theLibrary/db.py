@@ -12,6 +12,7 @@ def get_db():
             detect_types=sqlite3.PARSE_DECLTYPES
         )
         g.db.row_factory = sqlite3.Row
+        g.db.execute('PRAGMA foreign_keys = ON')
 
     return g.db
 
@@ -56,25 +57,35 @@ def testdb():
     db = get_db()
     db.executescript('''
 INSERT INTO
-  books (isbn, title, total)
+  books (isbn, title)
 VALUES
-  ('978-7-12115-535-2', 'C++ Primer', 5);
+  ('978-7-12115-535-2', 'C++ Primer');
+INSERT INTO subbooks (book_id) VALUES (1);
+INSERT INTO subbooks (book_id) VALUES (1);
+INSERT INTO subbooks (book_id) VALUES (1);
+INSERT INTO subbooks (book_id) VALUES (1);
+INSERT INTO subbooks (book_id) VALUES (1);
 INSERT INTO
-  books (isbn, title, total)
+  books (isbn, title)
 VALUES
   (
     '978-0-87779-906-1',
-    'The Merriam-Webster Dictionary of Synonyms and Antonyms',
-    2
+    'The Merriam-Webster Dictionary of Synonyms and Antonyms'
   );
+INSERT INTO subbooks (book_id) VALUES (2);
+INSERT INTO subbooks (book_id) VALUES (2);
 INSERT INTO
-  entries (user_id, type, book_id, detail)
+  account (sub_id, user_id)
 VALUES
-  ('root', 'N', 1, 'Amount: 5');
+  (1, 'root');
 INSERT INTO
-  entries (user_id, type, book_id, detail)
+  account (sub_id, user_id)
 VALUES
-  ('root', 'N', 2, 'Amount: 2');
+  (6, 'root');
+INSERT INTO
+  account (sub_id, user_id)
+VALUES
+  (7, 'root');
     ''')
     db.commit()
     click.echo('Added books.')

@@ -11,18 +11,27 @@
     <table class="table">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>ISBN</th>
                 <th>Title</th>
                 <th>Total</th>
                 <th>Borrowed</th>
+                <th>Borrow</th>
             </tr>
         </thead>
         <tbody id="tbody">
-            {% for row in booklist %}
+            {% for book in booklist %}
             <tr>
-                {% for item in row %}
+                {% for item in book %}
                 <td>{{ item }}</td>
                 {% endfor %}
+                <td>
+                    {% if book['borrowed'] < book['total'] %}
+                    <a href="/borrow/{{ book['id'] }}"><i class="fas fa-book"></i></a>
+                    {% else %}
+                    <i class="fas fa-book-dead"></i>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

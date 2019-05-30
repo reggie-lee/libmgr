@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Borrow {{ book['title'] }}{% endblock %}
+
+{% block header %}
+<h1>Borrow <i>{{ book['title'] }}</i></h1>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Sub ID</th>
+                <th>Location</th>
+                <th>Borrow</th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+            {% for subbook in subbooks %}
+            <tr>
+                <td>{{ subbook['id'] }}</td>
+                <td>{{ subbook['location'] or 'Unknown' }}</td>
+                <td>
+                    {% if not subbook['borrower'] %}
+                    <a href="/borrow/{{ book['id'] }}/{{ subbook['id'] }}"><i class="fas fa-book"></i></a>
+                    {% else %}
+                    <a data-toggle="tooltip" data-placement="top" title="Borrowed by @{{ subbook['borrower'] }}">
+                        <i class="fas fa-book-dead"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extrabody %}
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
