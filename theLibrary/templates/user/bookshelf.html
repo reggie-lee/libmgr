@@ -12,17 +12,28 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Sub ID</th>
                 <th>ISBN</th>
                 <th>Title</th>
-                <th>Due Day</th>
+                <th>Date Due for Return</th>
+                <th>Return</th>
             </tr>
         </thead>
         <tbody id="tbody">
-            {% for row in booklist %}
+            {% for book in booklist %}
             <tr>
-                {% for item in row %}
+                {% for item in book[:-1] %}
                 <td>{{ item }}</td>
                 {% endfor %}
+                <td>
+                    <a href="/return/{{ book['sub_id'] }}">
+                        {% if book['time_left'] < 0 %}
+                        <i class="far fa-frown"></i>
+                        {% else %}
+                        <i class="far fa-smile"></i>
+                        {% endif %}
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

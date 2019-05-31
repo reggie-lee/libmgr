@@ -4,6 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 import bcrypt
+import theLibrary.alerts as alerts
 
 from theLibrary.db import get_db
 
@@ -21,15 +22,18 @@ def login_required(view):
     return wrapped_view
 
 
-def permission_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user['permission'] == 0:
-            return redirect(url_for('auth.login'))
+def permission_required(least=0):
+    def _permission_required(view):
+        @functools.wraps(view)
+        def wrapped_view(*args, **kwargs):
+            if g.user is None or g.user['permission'] < least:
+                flash(alerts.error('Permission reauired.'))
+                return redirect(url_for('library.index'))
 
-        return view(**kwargs)
+            return view(*args, **kwargs)
 
-    return wrapped_view
+        return wrapped_view
+    return _permission_required
 
 
 @bp.before_app_request
@@ -68,7 +72,7 @@ def register():
             db.commit()
             return redirect(url_for('auth.login'))
 
-        flash(error)
+        flash(alerts.error(error))
 
     return render_template('auth/register.html')
 
@@ -95,7 +99,7 @@ def login():
             session['username'] = user['username']
             return redirect(url_for('index'))
 
-        flash(error)
+        flash(alerts.error(error))
 
     return render_template('auth/login.html')
 

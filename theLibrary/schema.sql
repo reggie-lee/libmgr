@@ -30,7 +30,7 @@ CREATE TABLE subbooks (
 );
 CREATE TABLE account (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sub_id INTEGER NOT NULL,
+  sub_id INTEGER NOT NULL UNIQUE,
   user_id TEXT NOT NULL,
   due TIMESTAMP NOT NULL DEFAULT (DATETIME('now', '+1 month', 'localtime')),
   FOREIGN KEY (sub_id) REFERENCES subbooks(id),

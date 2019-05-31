@@ -7,12 +7,42 @@
 {% endblock %}
 
 {% block content %}
+
+{% if user['permission'] < 0 %}
+<div class="alert alert-dark text-center">
+    <span class="float-left"><i class="fas fa-skull-crossbones"></i></span>
+    This user is banned.
+    <span class="float-right"><i class="fas fa-skull-crossbones"></i></span>
+</div>
+{% elif user['permission'] > 0 %}
+<div class="alert alert-primary text-center">
+    <span class="float-left"><i class="fas fa-hashtag"></i></span>
+    This user is admin.
+    <span class="float-right"><i class="fas fa-hashtag"></i></span>
+</div>
+{% endif %}
+
 <form {% if not readonly %} action="/user" method="post" role="form" {% endif %} class="form-horizontal">
     <div class="form-group">
         <label for="userid">User ID</label>
-        <input type="text" class="form-control" id="userid" name="userid" value="{{ user['id'] }}" {% if readonly %}
-            readonly {% endif %}>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">@</span>
+            </div>
+            <input type="text" class="form-control" id="userid" name="userid" value="{{ user['id'] }}" {% if readonly %}
+                readonly {% endif %}>
+            <div class="invalid-feedback" style="width: 100%;">
+                User ID is required.
+            </div>
+        </div>
     </div>
+    {% if not readonly %}
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password"
+            placeholder="Leave empty if not changing">
+    </div>
+    {% endif %}
     <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}"

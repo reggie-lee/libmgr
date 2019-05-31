@@ -21,6 +21,14 @@
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}">
     </div>
+    <div class="form-group">
+        <label for="permission">Permission</label>
+        <select class="form-control" id="permission" name="permission" value="{{ user['permission'] }}">
+            {% for v, m in [(-1,'Banned'), (0,'User'), (1,'Admin')] %}
+            <option value="{{v}}" {% if user['permission'] == v %}selected{% endif %}>{{m}}</option>
+            {% endfor %}
+        </select>
+    </div>
     <button type="submit" class="btn btn-primary">Apply Changes</button>
 </form>
 {% endblock %}

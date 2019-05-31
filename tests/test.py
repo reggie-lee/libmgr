@@ -1,7 +1,7 @@
 #!/bin/python3
-from theLibrary.db import get_db
+import sqlite3
 
-db = get_db()
+db = sqlite3.connect('instance/library.db')
 
-db.executescript(open('test.sql').read())
+db.executescript(open('tests/books.sql').read())
 db.commit()

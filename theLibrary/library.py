@@ -3,8 +3,11 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from theLibrary.auth import login_required
+import bcrypt
+from theLibrary.auth import login_required, permission_required
 from theLibrary.db import get_db
+
+import theLibrary.alerts as alerts
 
 bp = Blueprint('library', __name__)
 
@@ -18,6 +21,11 @@ def index():
         else:
             username = '@' + g.user['id']
     return render_template('index.html', name=username)
+
+
+@bp.route('/search')
+def search():
+    return 'TODO'
 
 
 @bp.route('/@<userid>')
@@ -40,6 +48,7 @@ def profile(userid):
 def my_profile():
     if request.method == 'POST':
         userid = request.form['userid']
+        password = request.form['password']
         username = request.form['username']
         db = get_db()
         error = None
@@ -50,15 +59,22 @@ def my_profile():
             error = 'User @{} already registered.'.format(userid)
 
         if error is None:
+            if len(password) > 0:
+                db.execute(
+                    'UPDATE users SET password = ? WHERE id = ?',
+                    (bcrypt.hashpw(password.encode(),
+                                   bcrypt.gensalt()), g.user['id'])
+                )
+
             db.execute(
                 'UPDATE users SET (id, username) = (?, ?) WHERE id = ?',
                 (userid, username, g.user['id'])
             )
             db.commit()
-            flash('User information updated.')
+            flash(alerts.success('User information updated.'))
             return redirect('@' + userid)
 
-        flash(error)
+        flash(alerts.error(error))
 
     return redirect('@' + g.user['id'])
 
@@ -68,20 +84,61 @@ def my_profile():
 def bookshelf():
     db = get_db()
     booklist = db.execute(
-        'SELECT books.id, books.isbn, books.title, account.due FROM account JOIN books ON user_id = ? AND (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id',
+        "SELECT books.id, account.sub_id, books.isbn, books.title, account.due, (julianday(account.due) - julianday('now')) AS time_left FROM account JOIN books ON user_id = ? AND (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id",
         (g.user['id'],)
     ).fetchall()
     return render_template('user/bookshelf.html', booklist=booklist)
 
 
-@bp.route('/explore')
-def explore():
-    return render_template(
-        'explore.html',
-        booklist=get_db().execute(
-            'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books'
-        ).fetchall()
+@bp.route('/return/<int:subid>')
+@login_required
+def return_book(subid):
+    db = get_db()
+    msg = None
+    if not db.execute(
+        'SELECT EXISTS(SELECT 1 FROM account WHERE sub_id = ? AND user_id = ?)',
+        (subid, g.user['id'])
+    ).fetchone()[0]:
+        msg = alerts.error('Book not borrowed.')
+
+    else:
+        db.execute(
+            'DELETE FROM account WHERE sub_id = ? AND user_id = ?',
+            (subid, g.user['id'])
+        )
+        db.commit()
+        msg = alerts.success('Book returned.')
+
+    flash(msg)
+    return redirect(url_for('library.bookshelf'))
+
+
+@bp.route('/explore', defaults={'page': 0})
+@bp.route('/explore/<int:page>')
+def explore(page):
+    db = get_db()
+    booklist = get_db().execute(
+        'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books LIMIT 10 * ?, 10',
+        (page,)
+    ).fetchall()
+    pages = -(-db.execute(
+        'SELECT COUNT(*) FROM books'
+    ).fetchone()[0] // 10)
+
+    return render_template('explore.html', booklist=booklist, page=page, pages=pages)
+
+
+@bp.route('/book/<int:bookid>')
+def book(bookid):
+    db = get_db()
+    book = db.execute(
+        'SELECT * FROM books WHERE id = ?', (bookid,)
+    ).fetchone()
+    subbooks = db.execute(
+        'SELECT id, location, (SELECT user_id FROM account WHERE sub_id = subbooks.id) AS borrower FROM subbooks WHERE book_id = ?',
+        (bookid,)
     )
+    return render_template('book.html', book=book, subbooks=subbooks)
 
 
 @bp.route('/borrow/<int:bookid>')
@@ -97,5 +154,17 @@ def borrow(bookid):
 
 
 @bp.route('/borrow/<int:bookid>/<int:subid>')
+@permission_required(least=0)
 def sub_borrow(bookid, subid):
-    return "TODO"
+    db = get_db()
+    if db.execute('SELECT EXISTS(SELECT 1 FROM account WHERE sub_id=?)', (subid,)).fetchone()[0]:
+        flash(alerts.error('Book already borrowed.'))
+        return redirect(url_for('library.borrow', bookid=bookid))
+
+    db.execute(
+        "INSERT INTO account (sub_id, user_id) VALUES (?, ?)",
+        (subid, g.user['id'])
+    )
+    db.commit()
+    flash(alerts.success('Successfully borrowed the book.'))
+    return redirect(url_for('library.borrow', bookid=bookid))

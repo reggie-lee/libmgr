@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Book{% endblock %}
+
+{% block header %}
+<h1>Add New Book</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post" role="form" class="form-horizontal">
+    <div class="form-group">
+        <label for="id">ID</label>
+        <input type="text" class="form-control" id="id" name="id" value="Automaticaly generated" readonly>
+    </div>
+    <div class="form-group">
+        <label for="isbn">ISBN</label>
+        <input type="text" class="form-control" id="isbn" name="isbn" value="">
+    </div>
+    <div class="form-group">
+        <label for="language">Language</label>
+        <input type="text" class="form-control" id="language" name="language" value="">
+    </div>
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" name="title" value="">
+    </div>
+    <div class="form-group">
+        <label for="publisher">Publisher</label>
+        <input type="text" class="form-control" id="publisher" name="publisher" value="">
+    </div>
+    <div class="form-group">
+        <label for="shape">Shape</label>
+        <input type="text" class="form-control" id="shape" name="shape" value="">
+    </div>
+    <div class="form-group">
+        <label for="summary">Summary</label>
+        <input type="text" class="form-control" id="summary" name="summary" value="">
+    </div>
+    <div class="form-group">
+        <label for="othertitles">Other Titles</label>
+        <input type="text" class="form-control" id="othertitles" name="othertitles" value="">
+    </div>
+    <div class="form-group">
+        <label for="subject">Subject</label>
+        <input type="text" class="form-control" id="subject" name="subject" value="">
+    </div>
+    <div class="form-group">
+        <label for="author">Author</label>
+        <input type="text" class="form-control" id="author" name="author" value="">
+    </div>
+    <button type="submit" class="btn btn-primary">Add This Book</button>
+</form>
+
+
+{% endblock %}

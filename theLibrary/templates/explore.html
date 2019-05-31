@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="table-responsive">
-    <table class="table">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>ID</th>
@@ -17,11 +17,14 @@
                 <th>Total</th>
                 <th>Borrowed</th>
                 <th>Borrow</th>
+                {% if g.user['permission'] == 1 %}
+                <th>Edit</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody id="tbody">
             {% for book in booklist %}
-            <tr>
+            <tr onclick='window.location = "/book/{{ book[0] }}"'>
                 {% for item in book %}
                 <td>{{ item }}</td>
                 {% endfor %}
@@ -32,9 +35,33 @@
                     <i class="fas fa-book-dead"></i>
                     {% endif %}
                 </td>
+                {% if g.user['permission'] == 1 %}
+                <td><a href="/librarian/edit/book/{{ book['id'] }}">Edit</a></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<div class="my-1">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page == 0 %}disabled{% endif %}"><a class="page-link"
+                href="/explore/{{ page - 1}}">Previous</a></li>
+        {% for i in range(page - 5, page + 5) %}
+        {% if i >= 0 and i < pages %}
+        <li class="page-item"><a class="page-link" href="/explore/{{ i }}">{{ i + 1 }}</a></li>
+        {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page == pages - 1 %}disabled{% endif %}"><a class="page-link"
+                href="/explore/{{ page + 1}}">Next</a></li>
+    </ul>
+</div>
+
+{% if g.user['permission'] == 1 %}
+<div class="my-1 text-center">
+    <a href="/librarian/add/book" class="btn btn-info" role="button">Add New Book</a>
+</div>
+{% endif %}
+
 {% endblock %}
