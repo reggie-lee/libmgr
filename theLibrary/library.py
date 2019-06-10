@@ -8,6 +8,7 @@ from theLibrary.auth import login_required, permission_required
 from theLibrary.db import get_db
 
 import theLibrary.alerts as alerts
+import re
 
 bp = Blueprint('library', __name__)
 
@@ -23,9 +24,28 @@ def index():
     return render_template('index.html', name=username)
 
 
-@bp.route('/search')
-def search():
-    return 'TODO'
+@bp.route('/search', defaults={'page': 0})
+@bp.route('/search/<int:page>')
+def search(page):
+    query = request.args.get('query')
+    keywords = '%' + '%'.join(re.sub(r'[^\w]', ' ', query).split()) + '%'
+
+    booklist = None
+    if 'search' in g:
+        booklist = g.search.get(keywords)
+    else:
+        g.search = {}
+
+    if booklist is None:
+        db = get_db()
+        g.search[keywords] = booklist = db.execute(
+            'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books WHERE title LIKE ?',
+            (keywords,)
+        ).fetchall()
+    pages = -(-len(booklist) // 10)
+    booklist = booklist[page * 10:page * 10 + 10]
+
+    return render_template('search.html', query=query, booklist=booklist, page=page, pages=pages)
 
 
 @bp.route('/@<userid>')

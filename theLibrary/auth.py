@@ -27,7 +27,7 @@ def permission_required(least=0):
         @functools.wraps(view)
         def wrapped_view(*args, **kwargs):
             if g.user is None or g.user['permission'] < least:
-                flash(alerts.error('Permission reauired.'))
+                flash(alerts.error('Permission required.'))
                 return redirect(url_for('library.index'))
 
             return view(*args, **kwargs)
