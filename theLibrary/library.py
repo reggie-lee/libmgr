@@ -27,6 +27,7 @@ def index():
 @bp.route('/search', defaults={'page': 0})
 @bp.route('/search/<int:page>')
 def search(page):
+    # TODO
     query = request.args.get('query')
     keywords = '%' + '%'.join(re.sub(r'[^\w]', ' ', query).split()) + '%'
 
@@ -60,7 +61,8 @@ def profile(userid):
             readonly = False
         return render_template('profile.html', user=user, readonly=readonly)
     else:
-        abort(500)
+        flash(alerts.error('User not found.'))
+        return redirect(url_for('library.index'))
 
 
 @bp.route('/user', methods=('GET', 'POST'))

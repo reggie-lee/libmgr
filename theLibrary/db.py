@@ -5,6 +5,11 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 
 
+def db_search(text, keywords):
+    # TODO
+    return 0
+
+
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
@@ -12,6 +17,7 @@ def get_db():
             detect_types=sqlite3.PARSE_DECLTYPES
         )
         g.db.row_factory = sqlite3.Row
+        g.db.create_function("search", 2, db_search)
         g.db.execute('PRAGMA foreign_keys = ON')
 
     return g.db
