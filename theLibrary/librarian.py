@@ -1,6 +1,6 @@
 import bcrypt
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
 from werkzeug.exceptions import abort
 
@@ -80,17 +80,14 @@ def edit_user(orid):
         abort(500)
 
     if request.method == 'POST':
-        userid = request.form['userid']
         password = request.form['password']
         username = request.form['username']
         permission = request.form['permission']
 
         error = None
 
-        if not userid:
+        if not orid:
             error = 'User ID cannot be empty'
-        elif userid != orid and db.execute('SELECT EXISTS(SELECT 1 FROM users WHERE id=?)', [userid]).fetchone()[0]:
-            error = 'User @{} already registered.'.format(userid)
 
         if error is None:
             if len(password) > 0:
@@ -106,12 +103,14 @@ def edit_user(orid):
                 )
 
             db.execute(
-                'UPDATE users SET (id, username) = (?, ?) WHERE id = ?',
-                (userid, username, orid)
+                'UPDATE users SET username = ? WHERE id = ?',
+                (username, orid)
             )
             db.commit()
             flash(alerts.success('User information updated.'))
-            return redirect('/librarian/edit/user@' + userid)
+            if orid == session['id']:
+                session['username'] = username
+            return redirect('/librarian/edit/user@' + orid)
 
         flash(alerts.error(error))
 

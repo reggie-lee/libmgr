@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
 from werkzeug.exceptions import abort
 
@@ -27,22 +27,14 @@ def index():
 @bp.route('/search', defaults={'page': 0})
 @bp.route('/search/<int:page>')
 def search(page):
-    # TODO
     query = request.args.get('query')
     keywords = '%' + '%'.join(re.sub(r'[^\w]', ' ', query).split()) + '%'
 
-    booklist = None
-    if 'search' in g:
-        booklist = g.search.get(keywords)
-    else:
-        g.search = {}
-
-    if booklist is None:
-        db = get_db()
-        g.search[keywords] = booklist = db.execute(
-            'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books WHERE title LIKE ?',
-            (keywords,)
-        ).fetchall()
+    db = get_db()
+    booklist = db.execute(
+        'SELECT id, isbn, title, (SELECT COUNT(*) FROM subbooks WHERE book_id = books.id) AS total, (SELECT COUNT(*) FROM account WHERE (SELECT book_id FROM subbooks WHERE id = account.sub_id) = books.id) AS borrowed FROM books WHERE title LIKE ?',
+        (keywords,)
+    ).fetchall()
     pages = -(-len(booklist) // 10)
     booklist = booklist[page * 10:page * 10 + 10]
 
@@ -51,15 +43,18 @@ def search(page):
 
 @bp.route('/@<userid>')
 def profile(userid):
+    if not g.user:
+        return redirect(url_for('auth.login'))
+
+    if userid == g.user['id']:
+        return render_template('profile.html', user=g.user, readonly=False)
+
     db = get_db()
     user = db.execute(
         "SELECT * FROM users WHERE id=?", [userid]
     ).fetchone()
     if user:
-        readonly = True
-        if user['id'] == g.user['id']:
-            readonly = False
-        return render_template('profile.html', user=user, readonly=readonly)
+        return render_template('profile.html', user=user, readonly=True)
     else:
         flash(alerts.error('User not found.'))
         return redirect(url_for('library.index'))
@@ -77,8 +72,8 @@ def my_profile():
 
         if not userid:
             error = 'User ID cannot be empty'
-        elif userid != g.user['id'] and db.execute('SELECT EXISTS(SELECT 1 FROM users WHERE id=?)', [userid]).fetchone()[0]:
-            error = 'User @{} already registered.'.format(userid)
+        elif userid != g.user['id']:
+            error = 'Cannot change ID'
 
         if error is None:
             if len(password) > 0:
@@ -89,11 +84,12 @@ def my_profile():
                 )
 
             db.execute(
-                'UPDATE users SET (id, username) = (?, ?) WHERE id = ?',
-                (userid, username, g.user['id'])
+                'UPDATE users SET username = ? WHERE id = ?',
+                (username, g.user['id'])
             )
             db.commit()
             flash(alerts.success('User information updated.'))
+            session['username'] = username
             return redirect('@' + userid)
 
         flash(alerts.error(error))

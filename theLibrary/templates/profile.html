@@ -29,8 +29,7 @@
             <div class="input-group-prepend">
                 <span class="input-group-text">@</span>
             </div>
-            <input type="text" class="form-control" id="userid" name="userid" value="{{ user['id'] }}" {% if readonly %}
-                readonly {% endif %}>
+            <input type="text" class="form-control" id="userid" name="userid" value="{{ user['id'] }}" readonly>
             <div class="invalid-feedback" style="width: 100%;">
                 User ID is required.
             </div>

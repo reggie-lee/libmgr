@@ -37,15 +37,11 @@ def permission_required(least=0):
 
 
 @bp.before_app_request
-def loggedin():
-    userid = session.get('userid')
-
-    if userid is None:
-        g.user = None
+def get_user():
+    if len(session) != 0:
+        g.user = (session)
     else:
-        g.user = get_db().execute(
-            "SELECT * FROM users WHERE id=?", [userid]
-        ).fetchone()
+        g.user = None
 
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -95,8 +91,9 @@ def login():
 
         if error is None:
             session.clear()
-            session['userid'] = user['id']
+            session['id'] = user['id']
             session['username'] = user['username']
+            session['permission'] = user['permission']
             return redirect(url_for('index'))
 
         flash(alerts.error(error))
